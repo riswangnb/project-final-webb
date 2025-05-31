@@ -39,6 +39,23 @@ class OrderController extends Controller // Pastikan mewarisi Controller
         $customers = Customer::orderBy('name')->get();
         $services = Service::orderBy('name')->get();
         
+        // Untuk user non-admin, periksa apakah customer profile dan alamat sudah lengkap
+        if (Auth::check() && Auth::user()->role !== 'admin') {
+            $customer = Customer::where('user_id', Auth::id())->first();
+            
+            // Jika customer belum ada
+            if (!$customer) {
+                Log::warning('User mencoba membuat pesanan tanpa customer profile', ['user_id' => Auth::id()]);
+                return redirect()->route('user.profile')->with('error', 'Profil pelanggan belum diatur. Silakan lengkapi profil Anda terlebih dahulu untuk dapat membuat pesanan.');
+            }
+            
+            // Jika customer ada tapi alamat belum diisi
+            if (empty($customer->address)) {
+                Log::warning('User mencoba membuat pesanan tanpa alamat lengkap', ['user_id' => Auth::id(), 'customer_id' => $customer->id]);
+                return redirect()->route('user.profile')->with('error', 'Alamat belum diisi. Silakan lengkapi alamat Anda terlebih dahulu untuk dapat membuat pesanan.');
+            }
+        }
+        
         // Jika tidak ada pelanggan untuk admin, tampilkan pesan
         if (Auth::check() && Auth::user()->role === 'admin' && $customers->isEmpty()) {
             return redirect()->route('orders.index')->with('error', 'Tidak ada pelanggan tersedia. Tambahkan pelanggan terlebih dahulu.');
@@ -59,12 +76,25 @@ class OrderController extends Controller // Pastikan mewarisi Controller
                 Log::warning('Pengguna tidak memiliki entri pelanggan', ['user_id' => Auth::id()]);
                 return redirect()->route('user.profile')->with('error', 'Profil pelanggan belum diatur. Silakan lengkapi profil Anda.');
             }
+            
+            // Periksa juga apakah alamat sudah diisi
+            if (empty($customer->address)) {
+                Log::warning('Alamat pelanggan belum lengkap', ['user_id' => Auth::id(), 'customer_id' => $customer->id]);
+                return redirect()->route('user.profile')->with('error', 'Alamat belum diisi. Silakan lengkapi alamat Anda terlebih dahulu untuk dapat membuat pesanan.');
+            }
+            
             $validated['customer_id'] = $customer->id;
+            
+            // Untuk user non-admin, pickup dan delivery service selalu include (yes)
+            $validated['pickup_service'] = 'yes';
+            $validated['delivery_service'] = 'yes';
+        } else {
+            // Untuk admin, gunakan input dari form
+            $validated['pickup_service'] = $request->input('pickup_service', 'no');
+            $validated['delivery_service'] = $request->input('delivery_service', 'no');
         }
 
         $validated['total_price'] = $this->cleanPriceFormat($validated['total_price']);
-        $validated['pickup_service'] = $request->input('pickup_service');
-        $validated['delivery_service'] = $request->input('delivery_service');
         $validated['payment_method'] = $request->input('payment_method');
 
         // Logic status pesanan sesuai workflow laundry
@@ -130,7 +160,21 @@ class OrderController extends Controller // Pastikan mewarisi Controller
             if (!$customer) {
                 return redirect()->route('user.profile')->with('error', 'Profil pelanggan belum diatur. Silakan lengkapi profil Anda.');
             }
+            
+            // Periksa juga apakah alamat sudah diisi
+            if (empty($customer->address)) {
+                return redirect()->route('user.profile')->with('error', 'Alamat belum diisi. Silakan lengkapi alamat Anda terlebih dahulu untuk dapat membuat pesanan.');
+            }
+            
             $validated['customer_id'] = $customer->id;
+            
+            // Untuk user non-admin, pickup dan delivery service selalu include (yes)
+            $validated['pickup_service'] = 'yes';
+            $validated['delivery_service'] = 'yes';
+        } else {
+            // Untuk admin, gunakan input dari form
+            $validated['pickup_service'] = $request->input('pickup_service', 'no');
+            $validated['delivery_service'] = $request->input('delivery_service', 'no');
         }
 
         $validated['total_price'] = $this->cleanPriceFormat($validated['total_price']);
@@ -280,6 +324,9 @@ class OrderController extends Controller // Pastikan mewarisi Controller
         // Untuk non-admin, customer_id tidak perlu divalidasi dari input
         if (Auth::check() && Auth::user()->role !== 'admin') {
             unset($rules['customer_id']);
+            // Untuk user non-admin, pickup_service dan delivery_service tidak perlu divalidasi karena hardcode
+            unset($rules['pickup_service']);
+            unset($rules['delivery_service']);
         }
 
         return $request->validate($rules);
@@ -334,6 +381,12 @@ class OrderController extends Controller // Pastikan mewarisi Controller
             Log::warning('Pengguna tidak memiliki entri pelanggan', ['user_id' => Auth::id()]);
             return redirect()->route('user.profile')->with('error', 'Profil pelanggan belum diatur. Silakan lengkapi profil Anda.');
         }
+        
+        // Periksa juga apakah alamat sudah diisi
+        if (empty($customer->address)) {
+            Log::warning('Alamat pelanggan belum lengkap', ['user_id' => Auth::id(), 'customer_id' => $customer->id]);
+            return redirect()->route('user.profile')->with('error', 'Alamat belum diisi. Silakan lengkapi alamat Anda terlebih dahulu untuk dapat melihat pesanan.');
+        }
 
         // Log untuk debugging
         Log::info('Mengambil pesanan untuk pengguna', [
@@ -355,5 +408,12 @@ class OrderController extends Controller // Pastikan mewarisi Controller
         Log::info('Jumlah pesanan ditemukan', ['count' => $orders->count()]);
 
         return view('orders.user-orders', compact('orders'));
+    }
+
+    public function print($id)
+    {
+        $order = Order::with('customer', 'service')->findOrFail($id);
+
+        return view('orders.struk', compact('order'));
     }
 }

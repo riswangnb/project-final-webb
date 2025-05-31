@@ -36,7 +36,7 @@
             <div class="card-body">
                 <h5 class="card-title"><i class="fas fa-plus-circle me-2"></i>New Order</h5>
                 <p class="card-text">Place a new order online.</p>
-                <a href="{{ route('orders.create') }}" class="btn btn-light">Order Now</a>
+                <a href="{{ route('user.orders.create') }}" class="btn btn-light">Order Now</a>
             </div>
         </div>
     </div>

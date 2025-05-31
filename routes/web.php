@@ -20,7 +20,7 @@ Route::middleware('guest')->group(function () {
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Route dengan middleware auth
+// Route dengan middleware auth untuk redirect otomatis
 Route::middleware(['auth'])->group(function () {
     // Redirect root ke dashboard sesuai role
     Route::get('/dashboard', function () {
@@ -30,35 +30,48 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('user.dashboard');
     })->name('dashboard');
 
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard stats untuk semua user
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats'])->name('dashboard.stats');
-
-    // Resource Routes
-    Route::resource('customers', CustomerController::class);
-    Route::resource('orders', OrderController::class);
-    Route::resource('reports', ReportController::class);
-    Route::resource('services', ServiceController::class); // Ini untuk menu Services
-
-    // Update status pesanan
-    Route::post('/orders/{id}/update-status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
-    Route::get('/orders/{id}/update-status', [OrderController::class, 'updateStatusForm'])->name('orders.updateStatusForm');
-
-    // User-specific routes
-    Route::get('/user/profile', [UserController::class, 'profile'])->name('user.profile');
-    Route::get('/user/orders', [OrderController::class, 'userOrders'])->name('user.orders');
-    Route::get('/user/settings', [UserController::class, 'settings'])->name('user.settings');
-    // Route::get('/profile', [ProfileController::class, 'index'])->name('user.profile');
 });
 
 // Route untuk dashboard berdasarkan role
-Route::middleware(['auth'])->group(function () {
-    // Admin dashboard
+Route::middleware(['auth', 'admin'])->group(function () {
+    // Admin dashboard dan fitur admin
     Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
-
-    // User dashboard
-    Route::get('/user/dashboard', [DashboardController::class, 'userDashboard'])->name('user.dashboard');
+    
+    // Resource Routes untuk admin
+    Route::resource('customers', CustomerController::class);
+    Route::resource('orders', OrderController::class);
+    Route::resource('reports', ReportController::class);
+    Route::resource('services', ServiceController::class);
+    
+    // Update status pesanan (admin only)
+    Route::post('/orders/{id}/update-status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::get('/orders/{id}/update-status', [OrderController::class, 'updateStatusForm'])->name('orders.updateStatusForm');
 });
+
+Route::middleware(['auth', 'user'])->group(function () {
+    // User dashboard dan fitur user
+    Route::get('/user/dashboard', [DashboardController::class, 'userDashboard'])->name('user.dashboard');
+    
+    // User-specific routes
+    Route::get('/user/profile', [UserController::class, 'profile'])->name('user.profile');
+    Route::post('/user/profile/complete', [UserController::class, 'completeProfile'])->name('user.profile.complete');
+    Route::get('/user/orders', [OrderController::class, 'userOrders'])->name('user.orders');
+    Route::get('/user/settings', [UserController::class, 'settings'])->name('user.settings');
+    Route::get('/customer/profile', [CustomerController::class, 'profile'])->name('customer.profile');
+    
+    // User order management
+    Route::get('/user/orders/create', [OrderController::class, 'create'])->name('user.orders.create');
+    Route::post('/user/orders', [OrderController::class, 'store'])->name('user.orders.store');
+    Route::get('/user/orders/{order}', [OrderController::class, 'show'])->name('user.orders.show');
+    
+    // User dapat melihat services untuk membuat pesanan
+    Route::get('/user/services', [ServiceController::class, 'index'])->name('user.services.index');
+});
+
+// Route untuk mencetak struk pesanan
+Route::get('/orders/{id}/print', [OrderController::class, 'print'])->name('orders.print');
 
 use App\Services\WhatsappHelper;
 
@@ -92,7 +105,3 @@ Route::get('/check-env', function() {
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
-
-Route::get('/user/orders', [OrderController::class, 'userOrders'])->name('user.orders');
-Route::get('/customer/profile', [App\Http\Controllers\CustomerController::class, 'profile'])->name('customer.profile');
-Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');

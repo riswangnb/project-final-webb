@@ -123,6 +123,14 @@ class Customer extends Model
     }
 
     /**
+     * Relasi ke user
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * Scope untuk customer dengan nomor terverifikasi
      */
     public function scopeVerified($query)

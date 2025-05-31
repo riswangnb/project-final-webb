@@ -4,63 +4,243 @@
 @if(!$order || !$order->customer || !$order->service)
 <div class="alert alert-danger m-3">Data pesanan tidak lengkap. Tidak dapat menampilkan struk.</div>
 @else
-<div class="struk-container">
-    <div class="struk-header">
-        <h2>Laundry-In</h2>
-        <div class="text-muted">Struk Pesanan</div>
+<div class="receipt-container">
+    <!-- Header -->
+    <div class="receipt-header">
+        <h3>LAUNDRY-IN</h3>
+        <p>Struk Pesanan</p>
+        <div class="receipt-divider"></div>
     </div>
-    <div class="text-center mb-2">
-        {!! QrCode::size(120)->generate(route('orders.updateStatus', ['id' => $order->id])) !!}
-        <div style="font-size:0.9rem; color:#888;">ID: #{{ $order->id }}</div>
+
+    <!-- QR Code -->
+    <div class="receipt-qr">
+        {!! QrCode::size(80)->generate(route('orders.updateStatus', ['id' => $order->id])) !!}
+        <p>ID: #{{ $order->id }}</p>
     </div>
-    <table class="table struk-table table-borderless mb-2">
-        <tr><td>ID Pesanan</td><td>: #{{ $order->id }}</td></tr>
-        <tr><td>Nama</td><td>: {{ $order->customer->name }}</td></tr>
-        <tr><td>Layanan</td><td>: {{ $order->service->name }}</td></tr>
-        <tr><td>Berat</td><td>: {{ $order->weight }} kg</td></tr>
-        <tr><td>Total</td><td>: Rp {{ number_format($order->total_price,0,',','.') }}</td></tr>
-        <tr><td>Pembayaran</td><td>: {{ ucfirst($order->payment_method) }}</td></tr>
-        <tr><td>Status</td><td>: {{ ucfirst($order->status) }}</td></tr>
-        <tr><td>Tanggal Masuk</td><td>: {{ $order->pickup_date }}</td></tr>
-        <tr><td>Tanggal Selesai</td><td>: {{ $order->delivery_date }}</td></tr>
-    </table>
-    <div class="struk-footer">
-        Terima kasih telah menggunakan Laundry-In!<br>
-        <span class="text-muted">{{ now()->format('d/m/Y H:i') }}</span>
+
+    <!-- Order Details -->
+    <div class="receipt-details">
+        <div class="detail-row">
+            <span>Pelanggan</span>
+            <span>{{ $order->customer->name }}</span>
+        </div>
+        <div class="detail-row">
+            <span>Layanan</span>
+            <span>{{ $order->service->name }}</span>
+        </div>
+        <div class="detail-row">
+            <span>Berat</span>
+            <span>{{ $order->weight }} kg</span>
+        </div>
+        <div class="detail-row">
+            <span>Tanggal Masuk</span>
+            <span>{{ \Carbon\Carbon::parse($order->pickup_date)->format('d/m/Y') }}</span>
+        </div>
+        <div class="detail-row">
+            <span>Tanggal Selesai</span>
+            <span>{{ \Carbon\Carbon::parse($order->delivery_date)->format('d/m/Y') }}</span>
+        </div>
+        <div class="receipt-divider"></div>
+        <div class="detail-row total">
+            <span>TOTAL</span>
+            <span>Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+        </div>
+        <div class="detail-row">
+            <span>Pembayaran</span>
+            <span>{{ ucfirst($order->payment_method) }}</span>
+        </div>
     </div>
-    <div class="text-center mt-3">
-        <button class="btn btn-primary btn-cetak" onclick="window.print()"><i class="bi bi-printer"></i> Cetak Struk</button>
+
+    <!-- Footer -->
+    <div class="receipt-footer">
+        <p>Terima kasih!</p>
+        <small>{{ now()->format('d/m/Y H:i') }}</small>
+    </div>
+
+    <!-- Print Button -->
+    <div class="receipt-actions">
+        <button class="btn-print" onclick="window.open('{{ route('orders.print', $order->id) }}', '_blank')">
+            <i class="fas fa-print"></i> Cetak
+        </button>
     </div>
 </div>
 @endif
 <style>
-.struk-container {
-    max-width: 400px;
-    margin: 30px auto;
-    background: #f8f9fa;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 24px 20px;
+.receipt-container {
+    max-width: 350px;
+    margin: 20px auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 25px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
 }
-.struk-header {
+
+.receipt-header {
     text-align: center;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
 }
-.struk-header h2 {
-    font-size: 1.3rem;
+
+.receipt-header h3 {
+    font-size: 22px;
     font-weight: bold;
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+    letter-spacing: 1px;
 }
-.struk-table td {
-    padding: 4px 0;
+
+.receipt-header p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 14px;
 }
-.struk-footer {
+
+.receipt-divider {
+    height: 1px;
+    background: #ecf0f1;
+    margin: 15px 0;
+}
+
+.receipt-qr {
     text-align: center;
-    margin-top: 18px;
-    font-size: 0.95rem;
-    color: #888;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
 }
+
+.receipt-qr p {
+    margin: 10px 0 0 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.receipt-details {
+    margin-bottom: 20px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dotted #ecf0f1;
+    font-size: 14px;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row.total {
+    font-weight: bold;
+    font-size: 16px;
+    color: #2c3e50;
+    background: #f8f9fa;
+    padding: 12px 10px;
+    margin: 10px -10px;
+    border-radius: 6px;
+    border: none;
+}
+
+.detail-row span:first-child {
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+.detail-row span:last-child {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.receipt-footer {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.receipt-footer p {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.receipt-footer small {
+    color: #95a5a6;
+    font-size: 12px;
+}
+
+.receipt-actions {
+    text-align: center;
+}
+
+.btn-print {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.btn-print:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.btn-print i {
+    margin-right: 5px;
+}
+
+/* Print Styles */
 @media print {
-    .btn-cetak { display: none; }
-    .struk-container { box-shadow: none; }
+    .receipt-container {
+        box-shadow: none;
+        margin: 0;
+        padding: 20px;
+        max-width: none;
+    }
+    
+    .receipt-actions {
+        display: none !important;
+    }
+    
+    .btn-print {
+        display: none !important;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    .receipt-container {
+        margin: 10px;
+        padding: 20px;
+    }
+    
+    .receipt-header h3 {
+        font-size: 20px;
+    }
+    
+    .detail-row {
+        font-size: 13px;
+    }
+    
+    .detail-row.total {
+        font-size: 15px;
+    }
 }
 </style>
+<script>
+    window.onload = function() {
+        window.print();
+    };
+</script>

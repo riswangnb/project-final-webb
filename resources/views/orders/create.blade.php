@@ -200,26 +200,46 @@
                 </div>
             @endif
 
-            <form action="{{ route('orders.store') }}" method="POST" id="order-form">
+            <form action="{{ auth()->user() && auth()->user()->role === 'admin' ? route('orders.store') : route('user.orders.store') }}" method="POST" id="order-form">
                 @csrf
                 
                 <div class="form-section">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="customer_id" class="form-label required">Pelanggan</label>
-                            <select class="form-select @error('customer_id') is-invalid @enderror" id="customer_id" name="customer_id" required>
-                                <option value="">Pilih Pelanggan</option>
-                                @forelse ($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>
-                                        {{ $customer->name }} - {{ $customer->phone }}
-                                    </option>
-                                @empty
-                                    <option value="" disabled>Tidak ada pelanggan tersedia</option>
-                                @endforelse
-                            </select>
-                            @error('customer_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @if(auth()->user() && auth()->user()->role === 'admin')
+                                <select class="form-select @error('customer_id') is-invalid @enderror" id="customer_id" name="customer_id" required>
+                                    <option value="">Pilih Pelanggan</option>
+                                    @forelse ($customers as $customer)
+                                        <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>
+                                            {{ $customer->name }} - {{ $customer->phone }}
+                                        </option>
+                                    @empty
+                                        <option value="" disabled>Tidak ada pelanggan tersedia</option>
+                                    @endforelse
+                                </select>
+                                @error('customer_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            @else
+                                @php
+                                    $userCustomer = \App\Models\Customer::where('user_id', auth()->id())->first();
+                                @endphp
+                                @if($userCustomer && !empty($userCustomer->address))
+                                    <input type="text" class="form-control" value="{{ $userCustomer->name }} - {{ $userCustomer->phone }}" readonly>
+                                    <input type="hidden" name="customer_id" value="{{ $userCustomer->id }}">
+                                @elseif($userCustomer && empty($userCustomer->address))
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        Alamat belum diisi. <a href="{{ route('user.profile') }}">Lengkapi alamat Anda</a> terlebih dahulu untuk dapat membuat pesanan.
+                                    </div>
+                                @else
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        Profil pelanggan belum diatur. <a href="{{ route('user.profile') }}">Lengkapi profil Anda</a> terlebih dahulu.
+                                    </div>
+                                @endif
+                            @endif
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="service_id" class="form-label required">Layanan</label>
@@ -240,7 +260,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="weight" class="form-label required">Berat (kg)</label>
+                            <label for="weight" class="form-label required">{{ auth()->user() && auth()->user()->role !== 'admin' ? 'Estimasi Berat' : 'Berat' }} (kg)</label>
                             <input type="number" step="0.1" min="0.1" max="20" class="form-control @error('weight') is-invalid @enderror" id="weight" name="weight" value="{{ old('weight') }}" required>
                             @error('weight')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -260,8 +280,22 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="mt-2">
-                                <input type="checkbox" id="pickup_service" name="pickup_service" value="yes" @checked(old('pickup_service') == 'yes')>
-                                <label for="pickup_service" class="form-label ms-2">Butuh Penjemputan?</label>
+                                @if(auth()->user() && auth()->user()->role === 'admin')
+                                    <label for="pickup_service" class="form-label">Butuh Penjemputan?</label>
+                                    <select class="form-select @error('pickup_service') is-invalid @enderror" id="pickup_service" name="pickup_service" required>
+                                        <option value="no" @selected(old('pickup_service', 'no') == 'no')>Tidak</option>
+                                        <option value="yes" @selected(old('pickup_service') == 'yes')>Ya</option>
+                                    </select>
+                                    @error('pickup_service')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                @else
+                                    <input type="checkbox" id="pickup_service" name="pickup_service" value="yes" checked disabled>
+                                    <input type="hidden" name="pickup_service" value="yes">
+                                    <label for="pickup_service" class="form-label ms-2 text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Penjemputan Termasuk
+                                    </label>
+                                @endif
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -271,8 +305,22 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="mt-2">
-                                <input type="checkbox" id="delivery_service" name="delivery_service" value="yes" @checked(old('delivery_service') == 'yes')>
-                                <label for="delivery_service" class="form-label ms-2">Butuh Pengantaran?</label>
+                                @if(auth()->user() && auth()->user()->role === 'admin')
+                                    <label for="delivery_service" class="form-label">Butuh Pengantaran?</label>
+                                    <select class="form-select @error('delivery_service') is-invalid @enderror" id="delivery_service" name="delivery_service" required>
+                                        <option value="no" @selected(old('delivery_service', 'no') == 'no')>Tidak</option>
+                                        <option value="yes" @selected(old('delivery_service') == 'yes')>Ya</option>
+                                    </select>
+                                    @error('delivery_service')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                @else
+                                    <input type="checkbox" id="delivery_service" name="delivery_service" value="yes" checked disabled>
+                                    <input type="hidden" name="delivery_service" value="yes">
+                                    <label for="delivery_service" class="form-label ms-2 text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Pengantaran Termasuk
+                                    </label>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -327,7 +375,14 @@
                         <button type="reset" class="btn btn-danger">
                             <i class="bi bi-x-circle"></i> Batal
                         </button>
-                        <button type="submit" class="btn btn-primary">
+                        @php
+                            $canSubmit = true;
+                            if (auth()->check() && auth()->user()->role !== 'admin') {
+                                $userCustomer = \App\Models\Customer::where('user_id', auth()->id())->first();
+                                $canSubmit = $userCustomer && !empty($userCustomer->address);
+                            }
+                        @endphp
+                        <button type="submit" class="btn btn-primary" @if(!$canSubmit) disabled @endif>
                             <i class="bi bi-save"></i> Simpan Pesanan
                         </button>
                     </div>
