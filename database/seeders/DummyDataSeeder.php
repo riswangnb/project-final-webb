@@ -6,26 +6,12 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class DatabaseSeeder extends Seeder
+class DummyDataSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Seed dummy data for development and testing.
      */
     public function run(): void
-    {
-        // Jalankan AdminSeeder terlebih dahulu
-        $this->call([
-            AdminSeeder::class,
-        ]);
-
-        // Data dummy (uncomment jika diperlukan untuk development/testing)
-        // $this->seedDummyData();
-    }
-
-    /**
-     * Seed dummy data for development/testing
-     */
-    private function seedDummyData(): void
     {
         // Buat 10 user dummy menggunakan factory
         User::factory(10)->create();
@@ -36,14 +22,18 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Test User',
                 'email_verified_at' => now(),
-                'password' => Hash::make('password'), // Ganti jika perlu
+                'password' => Hash::make('password'),
+                'role' => 'user',
             ]
         );
 
-        // Jalankan seeder tambahan
+        // Jalankan seeder tambahan untuk data dummy
         $this->call([
             DummyOrdersSeeder::class,
-            // Tambahkan seeder lainnya di sini jika perlu
+            ServicesSeeder::class,
+            CustomerSeeder::class,
         ]);
+
+        $this->command->info('Dummy data seeded successfully!');
     }
 }
