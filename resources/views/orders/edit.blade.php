@@ -107,12 +107,59 @@
         }
         @media (max-width: 768px) {
             .form-container {
-                margin: 20px;
-                padding: 20px;
+                margin: 15px;
+                padding: 15px;
+                border-radius: 8px;
             }
             .btn {
                 width: 100%;
                 margin-bottom: 10px;
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            h1 {
+                font-size: 1.4rem;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .form-label {
+                font-size: 0.9rem;
+                margin-bottom: 6px;
+            }
+            .form-control, .form-select {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+            .row {
+                margin: 0 -8px;
+            }
+            .col-md-6 {
+                padding: 0 8px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .form-container {
+                margin: 10px;
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+            }
+            .col-md-6 {
+                margin-bottom: 15px;
+            }
+            .btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+            .alert {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            .form-section {
+                margin-bottom: 15px;
             }
         }
     </style>

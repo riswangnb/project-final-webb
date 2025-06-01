@@ -74,7 +74,7 @@
                         <i class="fas {{ $iconClass }}"></i> {{ ucfirst($order->status) }}
                     </span>
                 </td>
-                <td>${{ number_format($order->total_price, 2) }}</td>
+                <td>Rp {{ number_format($order->total_price, 2) }}</td>
                 <td>{{ $order->created_at->format('d M Y') }}</td>
             </tr>
             @empty

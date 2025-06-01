@@ -132,23 +132,33 @@
                             </div>
                         @endif
 
-                        <hr>                        <div class="d-flex justify-content-between">
-                            <a href="{{ route('user.dashboard') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-1"></i> Kembali ke Dashboard
-                            </a>
+                        <hr>                        
+                        <!-- Navigation Buttons - Responsive Layout -->
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                            <!-- Back to Dashboard Button -->
+                            <div class="order-2 order-md-1">
+                                <a href="{{ route('user.dashboard') }}" class="btn btn-secondary w-100 w-md-auto">
+                                    <i class="fas fa-arrow-left me-1"></i> 
+                                    <span class="d-none d-sm-inline">Kembali ke </span>Dashboard
+                                </a>
+                            </div>
                             
-                            <div>
+                            <!-- Action Buttons -->
+                            <div class="order-1 order-md-2 d-flex flex-column flex-sm-row gap-2">
                                 @if(!empty($customer->address))
-                                    <a href="{{ route('user.orders.create') }}" class="btn btn-success me-2">
-                                        <i class="fas fa-plus me-1"></i> Buat Pesanan Baru
+                                    <a href="{{ route('user.orders.create') }}" class="btn btn-success flex-fill">
+                                        <i class="fas fa-plus me-1"></i> 
+                                        <span class="d-none d-sm-inline">Buat </span>Pesanan<span class="d-none d-sm-inline"> Baru</span>
                                     </a>
                                 @else
-                                    <button class="btn btn-success me-2 disabled" disabled title="Lengkapi alamat terlebih dahulu">
-                                        <i class="fas fa-plus me-1"></i> Buat Pesanan Baru
+                                    <button class="btn btn-success flex-fill disabled" disabled title="Lengkapi alamat terlebih dahulu">
+                                        <i class="fas fa-plus me-1"></i> 
+                                        <span class="d-none d-sm-inline">Buat </span>Pesanan<span class="d-none d-sm-inline"> Baru</span>
                                     </button>
                                 @endif
-                                <a href="{{ route('user.orders') }}" class="btn btn-primary">
-                                    <i class="fas fa-list me-1"></i> Lihat Pesanan Saya
+                                <a href="{{ route('user.orders') }}" class="btn btn-primary flex-fill">
+                                    <i class="fas fa-list me-1"></i> 
+                                    <span class="d-none d-sm-inline">Lihat </span>Pesanan<span class="d-none d-sm-inline"> Saya</span>
                                 </a>
                             </div>
                         </div>
@@ -159,3 +169,106 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Responsive button improvements */
+    @media (max-width: 576px) {
+        .btn {
+            font-size: 0.875rem;
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .btn i {
+            font-size: 0.875rem;
+        }
+        
+        /* Stack buttons vertically on very small screens */
+        .flex-fill {
+            min-width: 100%;
+        }
+    }
+    
+    @media (min-width: 577px) and (max-width: 767px) {
+        .btn {
+            font-size: 0.9rem;
+        }
+        
+        /* Ensure buttons don't get too cramped on medium-small screens */
+        .flex-fill {
+            min-width: 0;
+            flex: 1;
+        }
+    }
+    
+    @media (min-width: 768px) {
+        .w-md-auto {
+            width: auto !important;
+        }
+    }
+    
+    /* Card responsive improvements */
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem 1rem;
+        }
+        
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        
+        .col-md-6 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+    
+    /* Alert improvements */
+    @media (max-width: 576px) {
+        .alert {
+            font-size: 0.875rem;
+            padding: 0.75rem;
+        }
+        
+        .alert strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+    }
+    
+    /* Form improvements for mobile */
+    @media (max-width: 576px) {
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .form-control {
+            font-size: 0.9rem;
+        }
+        
+        textarea.form-control {
+            min-height: 80px;
+        }
+    }
+    
+    /* Badge improvements */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+    
+    @media (max-width: 576px) {
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+</style>
+@endpush
